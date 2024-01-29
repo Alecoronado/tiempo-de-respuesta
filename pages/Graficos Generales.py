@@ -58,14 +58,23 @@ def main():
             (data['AÑO'] >= selected_years[0]) &
             (data['AÑO'] <= selected_years[1])
         ]
+
+        # Filtro por estación con opción "Todas"
+        if selected_station != 'Todas':
+            filtered_df = filtered_df[filtered_df['Tipo_KPI'] == selected_station]
+
+        # Filtro por país con opción "Todos"
+        if 'Todos' not in selected_countries:
+            filtered_df = filtered_df[filtered_df['Pais'].isin(selected_countries)]
+
         # Incluir gráficos
         st.header("         Análisis de la Eficiencia Operativa")
         figsize = (7, 5)  # Definir el tamaño de la figura para los gráficos
 
         # Cálculo de KPI Promedio y conteo de operaciones únicas
         average_kpi = filtered_df['KPI'].mean()
-        unique_operation_count = filtered_df['IDEtapa'].nunique()  # Usamos nunique() para contar códigos únicos
-        total_stations = filtered_df['Tipo_KPI'].count()  # Conteo total de estaciones (filas)
+        unique_operation_count = filtered_df['IDEtapa'].nunique()
+        total_stations = filtered_df['Tipo_KPI'].count() # Conteo total de estaciones (filas)
 
         # Mostrar métricas de KPI Promedio, conteo de operaciones únicas y total de estaciones
         col1, col2, col3 = st.columns(3)
