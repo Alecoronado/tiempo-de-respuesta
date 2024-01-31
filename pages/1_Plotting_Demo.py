@@ -220,6 +220,45 @@ def main():
 
         final_chart
 
+        # Crear la tabla pivotada con estaciones como filas y países como columnas
+        st.header("KPI Promedio por Estación y País")
+
+        # Pivotear el DataFrame para obtener el KPI promedio por estación (Tipo_KPI) y país
+        kpi_pivot_df_by_station_country = filtered_df.pivot_table(values='KPI', index='Tipo_KPI', columns='Pais', aggfunc='mean')
+
+        # Redondear todos los valores numéricos a dos decimales
+        kpi_pivot_df_by_station_country = kpi_pivot_df_by_station_country.round(2)
+
+        # Opción para reemplazar los valores None/NaN con un string vacío
+        kpi_pivot_df_by_station_country = kpi_pivot_df_by_station_country.fillna('')
+
+        # Muestra el DataFrame en la aplicación
+        st.dataframe(kpi_pivot_df_by_station_country)
+
+        # Convertir el DataFrame pivotado a un archivo de Excel para la descarga
+        output_by_station_country = io.BytesIO()
+        with pd.ExcelWriter(output_by_station_country, engine='openpyxl') as writer:
+            kpi_pivot_df_by_station_country.to_excel(writer, index=True)
+        output_by_station_country.seek(0)  # Regresamos al principio del stream para que streamlit pueda leer el contenido
+
+        # Botón de descarga en Streamlit
+        st.download_button(
+            label="Descargar KPI promedio por estación y país como Excel",
+            data=output_by_station_country,
+            file_name='kpi_promedio_por_estacion_y_pais.xlsx',
+            mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+
+        # Incluir un nuevo gráfico
+        st.header("KPI Promedio por País")
+
+        # Preparar datos para el gráfico por país
+        kpi_by_country = filtered_df.pivot_table(values='KPI', index='Pais', columns='AÑO', aggfunc='mean').fillna(0)
+        kpi_by_country.index = kpi_by_country.index.map(str)
+
+        # Crear una lista de colores basada en los países presentes en el DataFrame
+        colors = [country_colors.get(country, "#333333") for country in kpi_by_country.index]
+        
         # Convertir el DataFrame pivotado a un archivo de Excel para la descarga
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
@@ -238,45 +277,6 @@ def main():
             file_name='kpi_promedio_por_pais_y_año.xlsx',
             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-
-    # Incluir un nuevo gráfico
-    st.header("KPI Promedio por País")
-
-    # Preparar datos para el gráfico por país
-    kpi_by_country = filtered_df.pivot_table(values='KPI', index='Pais', columns='AÑO', aggfunc='mean').fillna(0)
-    kpi_by_country.index = kpi_by_country.index.map(str)
-
-    # Crear una lista de colores basada en los países presentes en el DataFrame
-    colors = [country_colors.get(country, "#333333") for country in kpi_by_country.index]
-
-    # Crear la tabla pivotada con estaciones como filas y países como columnas
-    st.header("KPI Promedio por Estación y País")
-
-    # Pivotear el DataFrame para obtener el KPI promedio por estación (Tipo_KPI) y país
-    kpi_pivot_df_by_station_country = filtered_df.pivot_table(values='KPI', index='Tipo_KPI', columns='Pais', aggfunc='mean')
-
-    # Redondear todos los valores numéricos a dos decimales
-    kpi_pivot_df_by_station_country = kpi_pivot_df_by_station_country.round(2)
-
-    # Opción para reemplazar los valores None/NaN con un string vacío
-    kpi_pivot_df_by_station_country = kpi_pivot_df_by_station_country.fillna('')
-
-    # Muestra el DataFrame en la aplicación
-    st.dataframe(kpi_pivot_df_by_station_country)
-
-    # Convertir el DataFrame pivotado a un archivo de Excel para la descarga
-    output_by_station_country = io.BytesIO()
-    with pd.ExcelWriter(output_by_station_country, engine='openpyxl') as writer:
-        kpi_pivot_df_by_station_country.to_excel(writer, index=True)
-    output_by_station_country.seek(0)  # Regresamos al principio del stream para que streamlit pueda leer el contenido
-
-    # Botón de descarga en Streamlit
-    st.download_button(
-        label="Descargar KPI promedio por estación y país como Excel",
-        data=output_by_station_country,
-        file_name='kpi_promedio_por_estacion_y_pais.xlsx',
-        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
 
     # Crear la tabla pivotada con estaciones como filas y años como columnas
     st.header("KPI Promedio por Estación y Año")
