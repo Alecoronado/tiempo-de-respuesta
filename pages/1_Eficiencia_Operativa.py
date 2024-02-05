@@ -252,12 +252,17 @@ def main():
         # Incluir un nuevo gráfico
         st.header("KPI Promedio por País")
 
-        # Preparar datos para el gráfico por país
+        # KPI promedio por país y año
         kpi_by_country = filtered_df.pivot_table(values='KPI', index='Pais', columns='AÑO', aggfunc='mean').fillna(0)
-        kpi_by_country.index = kpi_by_country.index.map(str)
 
-        # Crear una lista de colores basada en los países presentes en el DataFrame
-        colors = [country_colors.get(country, "#333333") for country in kpi_by_country.index]
+        # Conteo de estaciones por país y año
+        station_count_by_country = filtered_df.pivot_table(values='KPI', index='Pais', columns='AÑO', aggfunc='count').fillna(0)
+        station_count_by_country.columns = [f"{col}_count" for col in station_count_by_country.columns]
+
+        # Combinar el KPI promedio y el conteo de estaciones
+        kpi_by_country = pd.concat([kpi_by_country, station_count_by_country], axis=1)
+        kpi_by_country = kpi_by_country.round(2)
+
         
         # Convertir el DataFrame pivotado a un archivo de Excel para la descarga
         output = io.BytesIO()
@@ -268,7 +273,7 @@ def main():
 
         # Muestra el DataFrame en la aplicación
         st.write("Datos Resumidos:")
-        st.dataframe(kpi_pivot_df)
+        st.dataframe(kpi_by_country)
 
         # Botón de descarga en Streamlit
         st.download_button(
@@ -281,15 +286,21 @@ def main():
     # Crear la tabla pivotada con estaciones como filas y años como columnas
     st.header("KPI Promedio por Estación y Año")
 
-    # Pivotear el DataFrame para obtener el KPI promedio por estación (Tipo_KPI) y año
+    # KPI promedio por estación y año
     kpi_pivot_df_by_station_year = filtered_df.pivot_table(values='KPI', index='Tipo_KPI', columns='AÑO', aggfunc='mean')
+
+    # Conteo de estaciones por tipo de estación y año
+    station_count_by_station_year = filtered_df.pivot_table(values='KPI', index='Tipo_KPI', columns='AÑO', aggfunc='count').fillna(0)
+    station_count_by_station_year.columns = [f"{col}_count" for col in station_count_by_station_year.columns]
+
+    # Combinar el KPI promedio y el conteo de estaciones
+    kpi_pivot_df_by_station_year = pd.concat([kpi_pivot_df_by_station_year, station_count_by_station_year], axis=1)
 
     # Redondear todos los valores numéricos a dos decimales
     kpi_pivot_df_by_station_year = kpi_pivot_df_by_station_year.round(2)
 
     # Opción para reemplazar los valores None/NaN con un string vacío
     kpi_pivot_df_by_station_year = kpi_pivot_df_by_station_year.fillna('')
-
     # Muestra el DataFrame en la aplicación
     st.dataframe(kpi_pivot_df_by_station_year)
 
