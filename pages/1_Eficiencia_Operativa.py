@@ -223,17 +223,25 @@ def main():
         # Crear la tabla pivotada con estaciones como filas y países como columnas
         st.header("KPI Promedio por Estación y País")
 
-        # Pivotear el DataFrame para obtener el KPI promedio por estación (Tipo_KPI) y país
-        kpi_pivot_df_by_station_country = filtered_df.pivot_table(values='KPI', index='Tipo_KPI', columns='Pais', aggfunc='mean')
+        # Conteo total de estaciones por tipo de KPI
+        total_station_count = filtered_df['Tipo_KPI'].value_counts()
+        total_station_count.name = 'Total_Estaciones'
 
-        # Redondear todos los valores numéricos a dos decimales
+        # Agregar la columna de conteo total al DataFrame pivotado
+        kpi_pivot_df_by_station_country = filtered_df.pivot_table(values='KPI', index='Tipo_KPI', columns='Pais', aggfunc='mean').fillna(0)
+
+        # Redondear los valores numéricos a dos decimales
         kpi_pivot_df_by_station_country = kpi_pivot_df_by_station_country.round(2)
+
+        # Agregar la columna de conteo total
+        kpi_pivot_df_by_station_country['Total_Estaciones'] = kpi_pivot_df_by_station_country.index.map(total_station_count)
 
         # Opción para reemplazar los valores None/NaN con un string vacío
         kpi_pivot_df_by_station_country = kpi_pivot_df_by_station_country.fillna('')
 
         # Muestra el DataFrame en la aplicación
         st.dataframe(kpi_pivot_df_by_station_country)
+
 
         # Convertir el DataFrame pivotado a un archivo de Excel para la descarga
         output_by_station_country = io.BytesIO()
